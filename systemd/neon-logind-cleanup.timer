@@ -2,7 +2,7 @@
 Description=Cleanup lost logind sessions
 
 [Timer]
-OnCalendar=hourly
+OnCalendar=daily
 
 [Install]
 WantedBy=timers.target
