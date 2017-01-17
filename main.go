@@ -22,6 +22,7 @@ package main
 
 import (
 	"fmt"
+	"net"
 	"time"
 
 	"github.com/godbus/dbus"
@@ -32,6 +33,36 @@ import (
 type sessionEntry struct {
 	ID         string
 	ObjectPath dbus.ObjectPath
+}
+
+type Blacklist struct {
+	Hostname string
+	IPs      []net.IP
+}
+
+func NewBlacklist(hostname string) *Blacklist {
+	blacklist := &Blacklist{
+		Hostname: hostname,
+	}
+	ips, err := net.LookupIP(hostname)
+	if err != nil {
+		fmt.Println("failed to resolve hostname!")
+		panic(err)
+	}
+	blacklist.IPs = ips
+	return blacklist
+}
+
+func (blacklist *Blacklist) blackListed(host string) bool {
+	if blacklist.Hostname == host {
+		return true
+	}
+	for _, ip := range blacklist.IPs {
+		if ip.String() == host {
+			return true
+		}
+	}
+	return false
 }
 
 func main() {
@@ -55,6 +86,8 @@ func main() {
 		panic(err)
 	}
 
+	blacklist := NewBlacklist("drax.kde.org")
+
 	for _, session := range sessions {
 		fmt.Println("--")
 		fmt.Println(session)
@@ -66,7 +99,7 @@ func main() {
 		}
 		remoteHost := remoteHostVariant.Value().(string)
 		fmt.Println(remoteHost)
-		if remoteHost != "46.101.206.233" {
+		if !blacklist.blackListed(remoteHost) {
 			fmt.Printf("Session %s is not from offending remote.\n", session.ID)
 			continue
 		}
