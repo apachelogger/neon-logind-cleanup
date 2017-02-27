@@ -1,6 +1,0 @@
-[Unit]
-Description=Cleanup lost logind sessions
-
-[Service]
-ExecStart=/home/neonarchives/bin/neon-logind-cleanup
-WorkingDirectory=/home/neonarchives
